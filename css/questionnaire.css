@@ -1,0 +1,74 @@
+.tb{
+	display: table;
+}
+.td{
+	display: table-cell;
+}
+.td.name{
+	border-radius:5px;
+	width:20%; 
+	text-align: center; 
+	background-color: white; 
+}
+.td.input{
+	width:100%; 
+	padding:0;
+	background-color: white;
+}
+
+div.chord{
+	background-color: rgb(128,128,128);
+}
+
+.white{
+	color:white;
+}
+
+h5,h4{
+	font-weight: bold;
+}
+
+.nextbutton{
+	float:right;
+}
+.prevbutton{
+	float:left;
+}
+.answer{
+	width:350px;
+}
+.message{
+	background:white;
+	width:300px;
+	border:0px;
+}
+.testing{
+	background-color: rgb(128,128,128);
+}
+.questionnaire {
+	background-color: white;
+}
+
+/*.questionnaire_choice {
+	margin-left: 10px; 
+	font-size: 18px;
+}*/
+
+.questionnaire_infomation {
+	margin: 10px 0 10px 0;
+}
+.questionnaire_infomation span {
+    width:120px;
+    height:25px;
+    padding: 8px;
+}
+.questionnaire_choice{
+	display:inline-block;
+}
+.questionnaire_choice label{
+	display:block;
+	margin-left:90px;
+}
+.questionnaire_pic{
+	display:block;
+}

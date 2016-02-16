@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>experiment1</title>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<script type="text/javascript" src="./libjs/angular.min.js"></script>
+	<script type="text/javascript" src="./libjs/d3.js"></script>
+	<script type="text/javascript" src="./js/questionnaire.module.js"></script>
+	<script type="text/javascript" src="./js/questionnaire.service.js"></script>
+	<script type="text/javascript" src="./js/questionnaire.directive.js"></script>
+	<script type="text/javascript" src="./js/questionnaire.controller.js"></script>
+	<link rel="stylesheet" type="text/css" href="./css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="./css/questionnaire.css">
+</head>
+<body ng-app="questionnaire" ng-controller="questionnaireController" ng-class="statusId >= 4 ? 'questionnaire' : 'testing'">
+		<div class="container" ng-init="LANG='EN'">
+			<div class="container" ng-show="statusId === 0" ng-keydown="keydown($event)">
+				<div class="row white">
+					<div class="col-xs-12 col-sm-8 col-sm-offset-2">
+		            	<h4><strong>Instruction：</strong>This study is to understand users' perception of graphical representations. The experiment consists of two stages: the training stage and the formal experiment. Each of them consists of several trials. In each trial we will present a donut/circle, and you should estimate the proportion of the black part to the whole(with percentage exact to 1%). First you will get trained through 10 training trials, after each trial there will be correct answer as feedback, and you could find proper strategy to make better estimation(no need to be absolute exact). In the training stage time and accuracy won't be recorded. Hint: you can just type numbers without "%", and though keyboard "enter" you can go to the next trial.</h4>
+		            </div>  
+		        </div>  
+		        <div class="row"> 
+		            <button class="col-sm-offset-9 btn btn-success" ng-click="start()">
+		                Start training
+		            </button>
+		        </div>
+		    </div>
+			<div class="container" ng-show="statusId === 1">
+	            <div class="row white">
+	                <h5 class="col-sm-offset-2">training</h5>
+	            </div>
+	            <div class="row white">
+	                <span class="col-sm-offset-2">{{trainingIndice}}</span>
+	            </div>
+	            <div class="row">
+	            	<div class="col-sm-offset-2">
+	            		<div chord-chart chart-indice="trainingIndice" chart-data="getTrainingData" chart-width="0.5" rotate-status="yes"></div>
+	            	</div>
+	            </div>
+	            <div class="row">
+		            <div class="col-xs-10 col-sm-offset-2 tb">
+		            	<tr>
+			            	<span class="td name">answer</span>
+				        	<input class="td input" type="number" pattern="[0-9]*" inputmode="numeric" ng-model="trainingAnswer" ng-keydown="keydown($event)">
+				        	<span class="td white" style="width:40%;">%</span>
+				        </tr>
+			        </div>
+	            </div>
+	            <div class="row" ng-show="dataVisible > 0">
+	                <div class="col-xs-10 col-sm-offset-2 tb">
+	                	<tr>
+		                	<span class="td name">correct answer</span>
+		                	<input class="td input" type="number" value={{trainingData}} readonly="true">
+		                	<span class="td white" style="width:40%;">%</span>
+	                	</tr>
+	                </div>
+	            </div>
+	            <div class="row">            
+		            <button ng-show="trainingIndice < trainingNumber" class="btn btn-success col-sm-offset-9" style="" ng-click="trainingNext()">
+		                next
+		            </button>
+		           	<button ng-show="trainingIndice === trainingNumber" class="btn btn-success col-sm-offset-9" style="" ng-click="trainingComplete()">
+		                complete
+		            </button>
+		        </div>
+			</div>
+			<div class="container" ng-show="statusId === 2" ng-keydown="keydown($event)" >
+				<div class="row white">
+					<div class="col-xs-12 col-sm-8 col-sm-offset-2">
+					    <h4>Training trials has been finished. Next is the formal experiment. In this stage there will be 5 parts, and each part consists of 26 trials. Each trial is similar to that in the training stage, but without the correct answer as feedback. We provide a "pre" operation so that you could go back to the pervious trial(not all the previous trials) to change the answer whenever you make a mistake such as type-in error. In the formal experiment accuracy and time will be recorded. After the experiment there will be several questions, and we hope you can answer them truthfully.Thanks for your cooperation.</h4>
+					</div>	
+				</div>
+				<div class="row"> 
+			        <button class="col-sm-offset-9 btn btn-success" ng-click="transition()">start</button>	
+		        </div>	            		         		
+			</div>
+			<div class="container" ng-show="statusId === 3 && partBegin" ng-keydown="keydown($event)" >
+				<div class="row white">
+					<div class="col-xs-12 col-sm-8 col-sm-offset-2">
+						<h4>Part {{questionPartIndice}}. 
+						Push the "Start" button will start the experiment. Between different parts you can take a breake before going on the following trials.</h4>
+					</div>
+				</div>
+				<div class="row"> 
+					<button class="col-sm-offset-9 btn btn-success" ng-click="startPart()">Start</button>
+				</div>
+			</div>
+			<div class="container" ng-show="statusId === 3 && !partBegin">
+	            <div class="row white">
+	                <h5 class="col-sm-offset-2">Please enter your answer.</h5>
+	            </div>
+	            <br />
+	            <div class="row white">
+	            	<h5 class="col-sm-offset-2">Part {{questionPartIndice}}</h5>
+	                <span class="col-sm-offset-2">{{questionIndice}}</span>
+	            </div>
+	            <div class="row">
+	            	<div class="col-sm-offset-2">
+	            		<div chord-chart chart-indice="questionIndice" chart-data="getUserstudyData" chart-width="0.5" rotate-status="yes"></div>
+	            	</div>
+	            </div>      
+	            <div class="row">
+		            <div class="col-xs-10 col-sm-offset-2 tb">
+		            	<tr>
+			                <span class="td name">answer</span>
+			                <input class="td input" type="number" pattern="[0-9]*" inputmode="numeric" ng-model="answer" ng-keydown="keydown($event)">
+			                <span class="td white" style="width:5%;">%</span>
+			                <span class="td text-nowrap white" style="width:30%">{{error[LANG][errorStatus]}}</span>
+		                </tr>
+		            </div>
+	            </div>
+	            <br/>
+	            <div class="row">  
+	            	<div class="col-xs-9 col-sm-offset-2 tb">
+			            <button style="display:inline-block" ng-show="questionIndice > 0" class="btn btn-success" ng-click="userstudyPrev()">
+			                pre
+			            </button>	            
+			            <button style="display:inline-block; float:right" ng-show="questionIndice < questionNumber" class="btn btn-success" ng-click="userstudyNext()">
+			                next
+			            </button>
+			            <button style="display:inline-block; float:right" ng-show="questionIndice === questionNumber" class="btn btn-success" ng-click="userstudyComplete()">
+			                complete
+			            </button>	 
+		            </div>        
+		        </div>
+			</div>
+			<div class="container questionnaire" style="width:100%;" ng-show="statusId === 4">
+				<div style="width:80%;">
+		            <div>
+		                <h5>Please fill in your personal information.</h5>
+		            </div>
+		            <br />
+		            <div class="input-group">
+		                <span class="input-group-addon" >age</span>
+		                <input type="number" pattern="[0-9]*" inputmode="numeric" class="form-control" placeholder="" ng-model="personInfo.age">
+		            </div>
+		            <div class="input-group">
+		                <span class="input-group-addon">sex</span>
+		                <input type="text" class="form-control" placeholder="male / female" ng-model="personInfo.gender">
+		            </div>
+		            <div class="input-group">
+		                <span class="input-group-addon" >education</span>
+		                <input type="text" class="form-control" placeholder="High school / Bachelor / Post-graduate" ng-model="personInfo.education">
+		            </div>
+		            <div class="input-group">
+		                <span class="input-group-addon" >Major</span>
+		                <input type="text" class="form-control" placeholder="" ng-model="personInfo.researchField">
+		            </div>
+		            <div class="input-group">
+		                <span class="input-group-addon" >Strong hand</span>
+		                <input type="text" class="form-control" placeholder="left/right" ng-model="personInfo.hand">
+		            </div>
+		            <div class="input-group">
+		                <span class="input-group-addon" >Device</span>
+		                <input type="text" class="form-control" placeholder="phone/pc" ng-model="personInfo.device">
+		            </div>
+		            <div class="input-group">
+		                <span class="input-group-addon" >Name</span>
+		                <input type="text" class="form-control" placeholder="" ng-model="personInfo.name">
+		                <!-- <span class="input-group-addon errorMessage"></span> -->
+		            </div>
+		            <div class="input-group">
+		                <span class="input-group-addon" >Company/School</span>
+		                <input type="text" class="form-control" placeholder="xx Company/xx University" ng-model="personInfo.department">
+		            </div>		            		            
+	            </div>	    
+	            <br/>  
+	            <div>
+	                <h5>What cues or strategies did you leverage in your estimation?</h5>
+	                <textarea rows="8" cols="80" ng-model="feedback"></textarea>
+	            </div>
+	            <br/>
+	            <div>
+	            	<h5>When you were making estimations, which of the belowing conditions did you prefer?</h5>
+	            	<div class="questionnaire_choice" ng-repeat="item in choices">
+		            	<div class="chord">
+		            		<div chord-chart chart-indice="1" scale={{item}} angle="0.40" chart-width="0.17" class="questionnaire_pic" rotate-status="no"></div>
+		            		<label><input name="favourite" type="radio" value={{item}} ng-model='$parent.favourite'/></label> 
+		            	</div>
+	            	</div>   
+	            </div>
+	            <br/>
+	            <div>
+	            	<h5>hen you were making estimations, in which condition do you think were the most accurate?</h5>
+	            	<div class="questionnaire_choice" ng-repeat="item in choices">
+	            		<div class="chord">
+		            		<div chord-chart chart-indice="1" scale={{item}} angle="0.40" chart-width="0.17" class="questionnaire_pic" rotate-status="no"></div>
+		            		<label><input name="accurate" type="radio" value={{item}} ng-model='$parent.accurate'/></label> 
+		            	</div>
+	            	</div>   
+	            </div>
+	            <br/>
+	            <div>
+	            	<h5>Before this experiment, how skilled were you in the similar tasks(quantity estimation)?</h5>
+					<div class="questionnaire_choice" ng-repeat="item in skillLevels[LANG]">		            
+		            	<label style="margin: 10px;"><input name="skilllevel" type="radio" value={{item}} ng-model='$parent.skillLevel'/>{{item}}</label> 
+	            	</div>   	            	
+	            </div>
+	            <button class="btn btn-success btn-lg btn-block" style="font-size:20px;margin-top:40px" ng-click="questionComplete()">
+	                complete
+	            </button>	            
+			</div>
+			<div class="container" style="width:80%;" ng-show="statusId === 5">
+	            <div>
+	                <h5>Thanks.</h5>
+	            </div>
+<!-- 	            <button class="btn btn-success" style="font-size: 20px;margin-top:20px" ng-click="complete()">
+	                完成
+	            </button> -->	         
+			</div>
+		</div>
+</body>
+</html>
